@@ -13,10 +13,12 @@ String header;
 // Auxiliar variables to store the current output state
 String output26State = "off";
 String output27State = "off";
+String output25State = "off";
 
 // Assign output variables to GPIO pins
 const int output26 = 26;
 const int output27 = 27;
+const int output25 = 28;
 
 
 void setup() {
@@ -25,9 +27,11 @@ void setup() {
   // Initialize the output variables as outputs
   pinMode(output26, OUTPUT);
   pinMode(output27, OUTPUT);
+  pinMode(output25, OUTPUT);
   // Set outputs to LOW
   digitalWrite(output26, LOW);
   digitalWrite(output27, LOW);
+  digitalWrite(output25, LOW);
 
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Setting AP Access Point)...");
@@ -52,10 +56,10 @@ void loop() {
   if (client) {                        // If a new client connects,
     Serial.println("New Client.");     // print a message out in the serial port
 
-    String currentLine = "";     // make a String to hold incoming data from the client
+    String currentLine = "";           // make a String to hold incoming data from the client
 
-    while (client.connected()) {  // loop while the client's connected
-      if (client.available()) {  // if there's bytes to read from the client,
+    while (client.connected()) {       // loop while the client's connected
+       if (client.available()) {        // if there's bytes to read from the client,
           char c = client.read();        // read a byte, then
           Serial.write(c);               // print it out the serial monitor
           header += c;
@@ -85,6 +89,22 @@ void loop() {
                 digitalWrite(output27, HIGH);
               } else if (header.indexOf("GET /27/off") >= 0) {
                 Serial.println("GPIO 27 off");
+                output27State = "off";
+                digitalWrite(output27, LOW);
+              } else if (header.indexOf("GET /25/on") >= 0) {
+                Serial.println("GPIO 25 on");
+                output25State = "on";
+                digitalWrite(output25, HIGH);
+                output26State = "on";
+                digitalWrite(output26, HIGH);
+                output27State = "on";
+                digitalWrite(output27, HIGH);
+              } else if (header.indexOf("GET /25/off") >= 0) {
+                Serial.println("GPIO 25 off");
+                output25State = "off";
+                digitalWrite(output25, LOW);
+                output26State = "off";
+                digitalWrite(output26, LOW);
                 output27State = "off";
                 digitalWrite(output27, LOW);
               }
@@ -117,11 +137,19 @@ void loop() {
 
                   // If the output27State is off, it displays the ON button
 
-                  if (output27State=="off") {
-                      client.println("<p><a href=\"/27/on\"><button class=\"button\">ON</button></a></p>");
-                    } else {
-                      client.println("<p><a href=\"/27/off\"><button class=\"button button2\">OFF</button></a></p>");
-                      }
+              if (output27State=="off") {
+                  client.println("<p><a href=\"/27/on\"><button class=\"button\">ON</button></a></p>");
+                } else {
+                  client.println("<p><a href=\"/27/off\"><button class=\"button button2\">OFF</button></a></p>");
+                  }
+
+                  client.println("<p>GPIO 25 - State " + output25State + "</p>");
+
+              if (output25State=="off") {
+                  client.println("<p><a href=\"/25/on\"><button class=\"button\">ON</button></a></p>");
+                } else {
+                  client.println("<p><a href=\"/25/off\"><button class=\"button button2\">OFF</button></a></p>");
+                  }
 
                   client.println("</body></html>");
                   // The HTTP response ends with another blank line
